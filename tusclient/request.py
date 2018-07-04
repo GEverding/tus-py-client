@@ -23,10 +23,7 @@ class TusRequest(object):
 
     def __init__(self, uploader):
         url = urlparse(uploader.url)
-        if url.scheme == 'https':
-            self.handle = http.client.HTTPSConnection(url.hostname, url.port)
-        else:
-            self.handle = http.client.HTTPConnection(url.hostname, url.port)
+        self.handle = uploader.http_client.get_handle()
         self._url = url
 
         self.response_headers = {}
@@ -69,9 +66,3 @@ class TusRequest(object):
             if e.errno in (errno.EPIPE, errno.ESHUTDOWN, errno.ECONNABORTED, errno.ECONNREFUSED, errno.ECONNRESET):
                 raise TusUploadFailed(e)
             raise e
-
-    def close(self):
-        """
-        close request handle and end request session
-        """
-        self.handle.close()

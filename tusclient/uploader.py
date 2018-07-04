@@ -122,6 +122,8 @@ class Uploader(object):
         self._retried = 0
         self.retry_delay = retry_delay
         self.log_func = log_func
+        self.http_client = TusHTTPClient(self)
+        self.session = requests.Session()
 
     # it is important to have this as a @property so it gets
     # updated client headers.
@@ -151,7 +153,7 @@ class Uploader(object):
         This is different from the instance attribute 'offset' because this makes an
         http request to the tus server to retrieve the offset.
         """
-        resp = requests.head(self.url, headers=self.headers)
+        resp = self.session.head(self.url, headers=self.headers)
         offset = resp.headers.get('upload-offset')
         if offset is None:
             msg = 'Attempt to retrieve offset fails with status {}'.format(resp.status_code)
@@ -202,7 +204,7 @@ class Uploader(object):
         headers = self.headers
         headers['upload-length'] = str(self.file_size)
         headers['upload-metadata'] = ','.join(self.encode_metadata())
-        resp = requests.post(self.client.url, headers=headers)
+        resp = self.session.post(self.client.url, headers=headers)
         url = resp.headers.get("location")
         if url is None:
             msg = 'Attempt to retrieve create file url with status {}'.format(resp.status_code)
