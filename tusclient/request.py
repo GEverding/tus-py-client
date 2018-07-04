@@ -1,5 +1,6 @@
 import http.client
 import errno
+import logging
 from future.moves.urllib.parse import urlparse
 
 from tusclient.exceptions import TusUploadFailed
@@ -24,7 +25,9 @@ class TusRequest(object):
     def __init__(self, uploader):
         url = urlparse(uploader.url)
         self.handle = uploader.http_client.get_handle()
+        logging.info("HTTP Handle %s", self.handle)
         self._url = url
+        logging.info("Url: %s", self._url)
 
         self.response_headers = {}
         self.status_code = None
@@ -56,13 +59,17 @@ class TusRequest(object):
 
             self.handle.request("PATCH", path, self.file.read(self._content_length), self._request_headers)
             self._response = self.handle.getresponse()
+            self._response.read()
             self.status_code = self._response.status
+            logging.info("HTTP Response Cod: %s", self.status_code)
             self.response_headers = {k.lower(): v for k, v in self._response.getheaders()}
         except http.client.HTTPException as e:
+            logging.exception("HTTP Upload Failed")
             raise TusUploadFailed(e)
         # wrap connection related errors not raised by the http.client.HTTP(S)Connection
         # as TusUploadFailed exceptions to enable retries
         except OSError as e:
+            logging.exception("Unknown Error in HTTP Uploader")
             if e.errno in (errno.EPIPE, errno.ESHUTDOWN, errno.ECONNABORTED, errno.ECONNREFUSED, errno.ECONNRESET):
                 raise TusUploadFailed(e)
             raise e

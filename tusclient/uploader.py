@@ -98,6 +98,8 @@ class Uploader(object):
     def __init__(self, file_path=None, file_stream=None, url=None, client=None,
                  chunk_size=None, metadata=None, retries=0, retry_delay=30,
                  store_url=False, url_storage=None, fingerprinter=None, log_func=None):
+
+        self.session = requests.Session()
         if file_path is None and file_stream is None:
             raise ValueError("Either 'file_path' or 'file_stream' cannot be None.")
 
@@ -124,7 +126,6 @@ class Uploader(object):
         self.retry_delay = retry_delay
         self.log_func = log_func
         self.http_client = TusHTTPClient(self)
-        self.session = requests.Session()
 
     # it is important to have this as a @property so it gets
     # updated client headers.
@@ -290,10 +291,7 @@ class Uploader(object):
             self.request.perform()
             self.verify_upload()
         except TusUploadFailed as error:
-            self.request.close()
             self._retry_or_cry(error)
-        finally:
-            self.request.close()
 
     def _retry_or_cry(self, error):
         if self.retries > self._retried:
