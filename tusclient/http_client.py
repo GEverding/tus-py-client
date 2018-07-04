@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import http.client
 import errno
 from future.moves.urllib.parse import urlparse

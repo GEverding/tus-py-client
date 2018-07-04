@@ -10,6 +10,7 @@ import requests
 
 from tusclient.exceptions import TusUploadFailed, TusCommunicationError
 from tusclient.request import TusRequest
+from tusclient.http_client import TusHTTPClient
 from tusclient.fingerprint import fingerprint
 
 
